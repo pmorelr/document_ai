@@ -3,7 +3,7 @@ import click
 import logging
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
-
+from DocBankToCOCO import COCOData
 
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
@@ -14,6 +14,13 @@ def main(input_filepath, output_filepath):
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
+    if input_filepath == '../../data/raw/DocBank/DocBank_samples/':
+        coco = COCOData()
+        coco.read_src_folder(input_filepath, output_filepath)
+        print(coco.src_dictionary)
+        coco.convert_to_coco()
+        coco.save_coco_dataset()
+
 
 
 if __name__ == '__main__':
