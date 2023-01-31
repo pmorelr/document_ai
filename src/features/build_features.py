@@ -1,6 +1,5 @@
 from huggingface_hub import notebook_login
 from datasets import load_dataset, Dataset
-from PIL import Image, ImageDraw, ImageFont
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import numpy as np
 import warnings
