@@ -21,6 +21,7 @@ SAVE_TYPE = args['save']
 # Acessing Dataset
 if DATASET == 'doclaynet':
     data_path='../../data/raw/DocLayNet/DocLayNet_core/COCO/'
+    data_path_text='../../data/raw/DocLayNet/DocLayNet_extra/JSON/'
 
 # Using HuggingFace's function to load the chosen dataset
 ds_raw = load_dataset('json', data_files={'train': data_path+'train.json', 'test': data_path+'test.json', 'val': data_path+'val.json'}, field='annotations')
@@ -66,6 +67,51 @@ my_dict = {'id': img_ids,
            'image_path': image_path}
 
 dataset = Dataset.from_dict(my_dict)
+
+if MODE == "multimodal":
+
+    words_bb = []
+
+    files_words = [data_path_text+image_path[i].strip('.png')+'.json' for i in range(len(image_path))]
+
+    for j in range(len(files_words)):
+        data = json.load(open(files_words[j], encoding='utf-8'))
+        words_bb.append([[data['cells'][i]['text']] + [data['cells'][i]['bbox']] for i in range(len(data['cells']))])
+
+    img_ids = []
+    image_path = []
+    bboxes = []
+    tags = []
+    words = []
+
+    for i_doc in range(len(dataset)):
+
+        img_ids.append(dataset[i_doc]['id'])
+        image_path.append(dataset[i_doc]['image_path'])
+        tags.append([])
+        bboxes.append([])
+        words.append([])
+
+        for i_bb in range(len(dataset[i_doc]['bboxes'])):
+
+            if dataset[i_doc]['tags'][i_bb] in [3,7]:
+                tags[-1].append(dataset[i_doc]['tags'][i_bb])
+                bboxes[-1].append(dataset[i_doc]['bboxes'][i_bb])
+                words[-1].append('')
+
+            else:
+                for text in words_bb[i_doc]:
+                    if check_bbox_in(dataset[i_doc]['bboxes'][i_bb], text[1]) and text[0] not in ['$', '.', '–', '_', '(', ')', '%', '#']:
+                    tags[-1].append(dataset[i_doc]['tags'][i_bb])
+                    bboxes[-1].append(text[1])
+                    words[-1].append(text[0])
+
+    dataset = Dataset.from_dict({'id': img_ids,
+            'bboxes': bboxes,
+            'words': words,
+            'tags': tags,
+            'image_path': image_path})
+
 
 # Saving the dataset to the local disk
 dataset.to_json(f'{DATASET}_{MODE}_{PART}.{SAVE_TYPE}') 
