@@ -92,5 +92,6 @@ target/
 
 # Data
 /data/processed/DocLayNet/multimodal/train.json
-/data/processed/DocLayNet/JSON
-/data/processed/DocLayNet/PNG
+/data/raw/DocLayNet/JSON
+/data/raw/DocLayNet/PNG
+/data/raw/DocLayNet/COCO
