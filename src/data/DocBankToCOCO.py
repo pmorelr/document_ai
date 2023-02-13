@@ -9,7 +9,9 @@ from IPython.display import JSON
 import re
 from tqdm import tqdm
 import traceback
-""" Source : https://github.com/doc-analysis/DocBank/blob/master/scripts/coco_format_scripts/DocbankToCOCO.py """
+""" Source : https://github.com/doc-analysis/DocBank/blob/master/scripts/coco_format_scripts/DocbankToCOCO.py 
+
+Modified to get one json file for all the images in the folder"""
 
 class COCOData:
     """
@@ -156,21 +158,42 @@ class COCOData:
                 # Extract Image width and height if annotations exist. There has to be atleast one annotation for an image to have the dimension attributes.
                 json_dict["images"].append(image_dict)
                 self.coco_dictionary.append(json_dict)
+
+            # Make one dictionary for all the images in the folder
+            
+            
         except:
             traceback.print_exc()
 
     # Converts final dictionary in COCO format for storing into file.
     def save_coco_dataset(self):
         try:
-            for i in tqdm(range(len(self.coco_file_path))):
-                coco_file_dir = os.path.split(self.coco_file_path[i])[0]
-                if not os.path.exists(coco_file_dir):
+            #for i in tqdm(range(len(self.coco_file_path))):
+            #    coco_file_dir = os.path.split(self.coco_file_path[i])[0]
+            #    if not os.path.exists(coco_file_dir):
                     # Creates the parent folder and all the subfolders for the file.
                     #   Does not throw an error if parent or any subfolders already exists.
-                    Path(coco_file_dir).mkdir(parents=True, exist_ok=True)
+            #        Path(coco_file_dir).mkdir(parents=True, exist_ok=True)
+            #output_file = open(self.coco_file_path[i], mode="w")
+            #output_file.writelines(json.dumps(self.coco_dictionary[i], indent=4))
 
-                output_file = open(self.coco_file_path[i], mode="w")
-                output_file.writelines(json.dumps(self.coco_dictionary[i], indent=4))
+            # Merge all the dictionaries into one dictionary
+            global_dict = self.create_dict_layout()
+            for i in range(len(self.coco_dictionary)):
+                global_dict["images"].extend(self.coco_dictionary[i]["images"])
+                global_dict["annotations"].extend(self.coco_dictionary[i]["annotations"])
+            # Create the path to store the file named "generated_coco.json" in the parent folder of the first file.
+            save_path = os.path.join(os.path.split(self.coco_file_path[0])[0], "generated_coco.json")
+            # Create the parent folder and all the subfolders for the file.
+            #   Does not throw an error if parent or any subfolders already exists.
+            Path(os.path.split(save_path)[0]).mkdir(parents=True, exist_ok=True)
+            # Save the file to the path
+            output_file = open(save_path, mode="w")
+            output_file.writelines(json.dumps(global_dict, indent=4))
+            # Show where the file is stored
+            print("COCO JSON file saved at: ", save_path)
+
+
         except:
             traceback.print_exc()
         # finally:

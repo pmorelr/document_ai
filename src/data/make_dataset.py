@@ -17,7 +17,7 @@ def main(input_filepath, output_filepath):
     if input_filepath == '../../data/raw/DocBank/DocBank_samples/':
         coco = COCOData()
         coco.read_src_folder(input_filepath, output_filepath)
-        print(coco.src_dictionary)
+        #print(coco.src_dictionary)
         coco.convert_to_coco()
         coco.save_coco_dataset()
 
