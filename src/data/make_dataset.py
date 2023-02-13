@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 from DocBankToCOCO import COCOData
+from COCO_train_test_valid_split import split
 
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
@@ -15,11 +16,14 @@ def main(input_filepath, output_filepath):
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
     if input_filepath == '../../data/raw/DocBank/DocBank_samples/':
+        # Convert DocBank to COCO format
         coco = COCOData()
-        coco.read_src_folder(input_filepath, output_filepath)
+        coco.read_src_folder(input_filepath, '../../data/interim/DocBank/DocBank_samples/')
         #print(coco.src_dictionary)
         coco.convert_to_coco()
         coco.save_coco_dataset()
+        # Split COCO annotations file into training, test and validation sets
+        split('../../data/interim/DocBank/DocBank_samples/generated_coco.json', '../../data/interim/DocBank/DocBank_samples/')
 
 
 

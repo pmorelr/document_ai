@@ -191,10 +191,10 @@ class COCOData:
             output_file = open(save_path, mode="w")
             output_file.writelines(json.dumps(global_dict, indent=4))
             # Show where the file is stored
-            print("COCO JSON file saved at: ", save_path)
+            #print("COCO JSON file saved at: ", save_path)
 
 
         except:
             traceback.print_exc()
-        # finally:
-        #     # output_file.close()
+        finally:
+            output_file.close()
