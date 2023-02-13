@@ -1,5 +1,5 @@
 from huggingface_hub import notebook_login
-from datasets import load_dataset, Dataset
+from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequence
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import numpy as np
 import warnings
@@ -61,12 +61,19 @@ for i in range(len(img_ids)):
     image_path.append(images[PART][j]['file_name'])
 
 # Creating a new dataset based on the previous process
+classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture','Section-Header', 'Table', 'Text', 'Title']
+
 my_dict = {'id': img_ids,
            'bboxes': bboxes,
            'tags': tags,
            'image_path': image_path}
 
-dataset = Dataset.from_dict(my_dict)
+features = Features({'id': Value(dtype='int64', id=None),
+'bboxes': Sequence(feature=Sequence(feature=Value(dtype='float64', id=None), length=-1, id=None), length=-1, id=None),
+'tags': Sequence(ClassLabel(num_classes=11, names=classes, id=None), length=-1, id=None),
+'image_path': Value(dtype='string', id=None)})
+
+dataset = Dataset.from_dict(my_dict, features=features)
 
 if MODE == "multimodal":
 
@@ -106,11 +113,19 @@ if MODE == "multimodal":
                     bboxes[-1].append(text[1])
                     words[-1].append(text[0])
 
-    dataset = Dataset.from_dict({'id': img_ids,
+    my_dict = {'id': img_ids,
             'bboxes': bboxes,
             'words': words,
             'tags': tags,
-            'image_path': image_path})
+            'image_path': image_path}
+
+    features = Features({'id': Value(dtype='int64', id=None),
+        'bboxes': Sequence(feature=Sequence(feature=Value(dtype='float64', id=None), length=-1, id=None), length=-1, id=None),
+        'words': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
+        'tags': Sequence(ClassLabel(num_classes=11, names=classes, id=None), length=-1, id=None),
+        'image_path': Value(dtype='string', id=None)})
+
+    dataset = Dataset.from_dict(my_dict, features=features)
 
 
 # Saving the dataset to the local disk
