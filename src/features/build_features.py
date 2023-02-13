@@ -3,6 +3,7 @@ from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequenc
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import numpy as np
 import warnings
+import json
 warnings.simplefilter("ignore")
 
 # Declaration of arguments that will be used 
@@ -20,8 +21,8 @@ SAVE_TYPE = args['save']
 
 # Acessing Dataset
 if DATASET == 'doclaynet':
-    data_path='../../data/raw/DocLayNet/DocLayNet_core/COCO/'
-    data_path_text='../../data/raw/DocLayNet/DocLayNet_extra/JSON/'
+    data_path='../../data/raw/DocLayNet/COCO/'
+    data_path_text='../../data/raw/DocLayNet/JSON/'
 
 # Using HuggingFace's function to load the chosen dataset
 ds_raw = load_dataset('json', data_files={'train': data_path+'train.json', 'test': data_path+'test.json', 'val': data_path+'val.json'}, field='annotations')
@@ -91,6 +92,10 @@ if MODE == "multimodal":
     tags = []
     words = []
 
+    def check_bbox_in(b1, b2):
+        if b1[0]<=b2[0] and b1[1]<=b2[1] and b1[0]+b1[2]>=b2[0]+b2[2] and b1[1]+b1[3]>=b2[1]+b2[3]:
+            return True
+
     for i_doc in range(len(dataset)):
 
         img_ids.append(dataset[i_doc]['id'])
@@ -109,9 +114,9 @@ if MODE == "multimodal":
             else:
                 for text in words_bb[i_doc]:
                     if check_bbox_in(dataset[i_doc]['bboxes'][i_bb], text[1]) and text[0] not in ['$', '.', '–', '_', '(', ')', '%', '#']:
-                    tags[-1].append(dataset[i_doc]['tags'][i_bb])
-                    bboxes[-1].append(text[1])
-                    words[-1].append(text[0])
+                        tags[-1].append(dataset[i_doc]['tags'][i_bb])
+                        bboxes[-1].append(text[1])
+                        words[-1].append(text[0])
 
     my_dict = {'id': img_ids,
             'bboxes': bboxes,
