@@ -44,7 +44,7 @@ for i in range(len(ds_raw[PART])):
 
     if ds_raw[PART][i]['image_id'] == img_id:
         bboxes[-1].append(ds_raw[PART][i]['bbox'])
-        tags[-1].append(ds_raw[PART][i]['category_id'])
+        tags[-1].append(ds_raw[PART][i]['category_id'] -1)
     else:
         bboxes.append([])
         tags.append([])
