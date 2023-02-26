@@ -2,13 +2,15 @@ from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequenc
 import numpy as np
 import json
 
-def vision_features(raw_dataset, part):
+def vision_features(raw_dataset, images, part):
     """
     Extracts and structures features for vision only models. 
 
     Args:
         raw_dataset (`datasets.dataset_dict.DatasetDict`):
-            Original version of the dataset loaded with HuggingFace's load_dataset method.
+            Original version of the annotations dataset loaded with HuggingFace's load_dataset method.
+        images (`datasets.dataset_dict.DatasetDict`):
+            Original version of the images dataset loaded with HuggingFace's load_dataset method.
         part (`str`):
             Specification of the partition of the dataset to be processed. ('train', 'test', 'val').
     Returns:
@@ -68,13 +70,15 @@ def organize_bboxes(bboxes_raw):
     return bboxes
 
 
-def text_features(path):
+def text_features(path, image_path):
     """
     Extracts the textual data alongside with its respective bounding boxes.
 
     Args:
         path (`str`):
             Folder path to the textual data.
+        image_path (`list`): 
+            Contains the path to a specific image.
     Returns:
         words_bb (`list`): 
             List contaning textual data and its respective bounding box, separated by document.
@@ -121,8 +125,6 @@ def multimodal_features(vision_dataset, words_bb):
         bboxes (`list`): 
             Contains sublists with the bounding boxes of a specific image. Each sublist's index is in accordance with img_ids.
         tags (`list`): 
-            Contains an index that corresponds to a specific image.
-        bboxes_raw (`list`): 
             Contains sublists with the labels of every bounding box of a specific image. Each sublist's index is in accordance with img_ids.
         image_path (`list`): 
             Contains the path to a specific image. Each index is in accordance with the image in every other list.
@@ -136,7 +138,6 @@ def multimodal_features(vision_dataset, words_bb):
     words = []
 
     for i_doc in range(len(vision_dataset)):
-
         img_ids.append(vision_dataset[i_doc]['id'])
         image_path.append(vision_dataset[i_doc]['image_path'])
         tags.append([])
@@ -144,12 +145,10 @@ def multimodal_features(vision_dataset, words_bb):
         words.append([])
 
         for i_bb in range(len(vision_dataset[i_doc]['bboxes'])):
-
             if vision_dataset[i_doc]['tags'][i_bb] in [3,7]:
                 tags[-1].append(vision_dataset[i_doc]['tags'][i_bb])
                 bboxes[-1].append(vision_dataset[i_doc]['bboxes'][i_bb])
                 words[-1].append('')
-
             else:
                 for text in words_bb[i_doc]:
                     if check_bbox_in(vision_dataset[i_doc]['bboxes'][i_bb], text[1]) and text[0] not in ['$', '.', '–', '_', '(', ')', '%', '#']:
@@ -157,4 +156,70 @@ def multimodal_features(vision_dataset, words_bb):
                         bboxes[-1].append(text[1])
                         words[-1].append(text[0])
 
-    return img_ids, bboxes_raw, tags, image_path, words 
+    '''
+    empty_i = [i_doc for i_doc in range(len(bboxes)) if bboxes[i_doc] == []]
+    for index in sorted(empty_i, reverse=True):
+        del bboxes[index]
+        del img_ids[index]
+        del image_path[index]
+        del tags[index]
+        del words[index]
+
+    '''
+
+    return img_ids, bboxes, tags, image_path, words 
+
+
+def resize_bboxes(bboxes, scale):
+    """
+    Resizes the scale of the bounding boxes.
+
+    Args:
+        bboxes (`list`):
+            Bounding box data.
+        scale (`int` or `float`):
+            Resizing scale.
+    Returns:
+        bboxes (`list`): 
+            Resized bounding box data.
+    """
+    for i_doc in range(len(bboxes)):
+        for i_box in range(len(bboxes[i_doc])):
+            bboxes[i_doc][i_box] = list(np.array(bboxes[i_doc][i_box])*scale)
+    
+    return bboxes
+
+
+def eliminate_blank(img_ids, bboxes, tags, image_path, words=False):
+    """
+    Eliminates documents that don't contribute to the dataset..
+
+    Args:
+        img_ids (`list`): 
+            Contains an index that corresponds to a specific image.
+        bboxes (`list`): 
+            Contains sublists with the bounding boxes of a specific image. Each sublist's index is in accordance with img_ids.
+        tags (`list`): 
+            Contains sublists with the labels of every bounding box of a specific image. Each sublist's index is in accordance with img_ids.
+        image_path (`list`): 
+            Contains the path to a specific image. Each index is in accordance with the image in every other list.
+        words (`list`): 
+            Contains sublists with the text of a specfic bounding box. Each sublist's index is in accordance with img_ids.
+    Returns:
+        A version of all aforementioned lists without blank data.
+    """
+
+    empty_i = [i_doc for i_doc in range(len(bboxes)) if bboxes[i_doc] == []]
+
+    for index in sorted(empty_i, reverse=True):
+        del bboxes[index]
+        del img_ids[index]
+        del image_path[index]
+        del tags[index]
+        if words != False:
+            del words[index]
+
+    if words != False:
+        return img_ids, bboxes, tags, image_path, words
+    else:
+        return img_ids, bboxes, tags, image_path
