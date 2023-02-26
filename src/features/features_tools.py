@@ -17,8 +17,6 @@ def vision_features(raw_dataset, part):
         bboxes_raw (`list`): 
             Contains sublists with the bounding boxes of a specific image. Each sublist's index is in accordance with img_ids.
         tags (`list`): 
-            Contains an index that corresponds to a specific image.
-        bboxes_raw (`list`): 
             Contains sublists with the labels of every bounding box of a specific image. Each sublist's index is in accordance with img_ids.
         image_path (`list`): 
             Contains the path to a specific image. Each index is in accordance with the image in every other list.
