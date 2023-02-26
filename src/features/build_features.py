@@ -1,6 +1,7 @@
 from huggingface_hub import notebook_login
 from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequence
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from features_tools import *
 import numpy as np
 import warnings
 import json
@@ -27,39 +28,21 @@ if DATASET == 'doclaynet':
 # Using HuggingFace's function to load the chosen dataset
 ds_raw = load_dataset('json', data_files={'train': data_path+'train.json', 'test': data_path+'test.json', 'val': data_path+'val.json'}, field='annotations')
 images = load_dataset('json', data_files={'train': data_path+'train.json', 'test': data_path+'test.json', 'val': data_path+'val.json'}, field='images')
-categories = load_dataset('json', data_files={'train': data_path+'train.json', 'test': data_path+'test.json', 'val': data_path+'val.json'}, field='categories')
 
 # Previewing the size of the dataset for the chosen partiton
 print(f"Dataset size: {len(ds_raw[PART])}, using a total number of {len(images[PART])} images")
 
 # Structuring the dataset per document
-bboxes = [[]]
-tags = [[]]
-img_ids = []
-image_path = []
+img_ids, bboxes, tags, image_path = vision_features(ds_raw, images, PART)
 
-img_id = ds_raw[PART][0]['image_id']
-img_ids.append(img_id)
+# Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
+bboxes = organize_bboxes(bboxes)
 
-for i in range(len(ds_raw[PART])):
+# Eliminating blank documents from the dataset
+img_ids, bboxes, tags, image_path = eliminate_blank(img_ids, bboxes, tags, image_path)
 
-    if ds_raw[PART][i]['image_id'] == img_id:
-        bboxes[-1].append(ds_raw[PART][i]['bbox'])
-        tags[-1].append(ds_raw[PART][i]['category_id'] -1)
-    else:
-        bboxes.append([])
-        tags.append([])
-        img_ids.append(ds_raw[PART][i]['image_id'])
-
-    img_id = ds_raw[PART][i]['image_id']
-
-j = 0
-for i in range(len(img_ids)):
-
-    while img_ids[i] != images[PART][j]['id']:
-        j +=1
-    
-    image_path.append(images[PART][j]['file_name'])
+# Resizing bboxes from 1025x1025 to a 224x224 format
+bboxes = resize_bboxes(bboxes, 224/1025.)
 
 # Creating a new dataset based on the previous process
 classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture','Section-Header', 'Table', 'Text', 'Title']
@@ -69,54 +52,18 @@ my_dict = {'id': img_ids,
            'tags': tags,
            'image_path': image_path}
 
-features = Features({'id': Value(dtype='int64', id=None),
-'bboxes': Sequence(feature=Sequence(feature=Value(dtype='float64', id=None), length=-1, id=None), length=-1, id=None),
-'tags': Sequence(ClassLabel(num_classes=11, names=classes, id=None), length=-1, id=None),
-'image_path': Value(dtype='string', id=None)})
-
-dataset = Dataset.from_dict(my_dict, features=features)
+dataset = Dataset.from_dict(my_dict)
 
 if MODE == "multimodal":
 
-    words_bb = []
+    words_bb = text_features(data_path_text, image_path)
 
-    files_words = [data_path_text+image_path[i].strip('.png')+'.json' for i in range(len(image_path))]
+    img_ids, bboxes, tags, image_path, words = multimodal_features(dataset, words_bb)
 
-    for j in range(len(files_words)):
-        data = json.load(open(files_words[j], encoding='utf-8'))
-        words_bb.append([[data['cells'][i]['text']] + [data['cells'][i]['bbox']] for i in range(len(data['cells']))])
+    # Eliminating blank documents from the dataset
+    img_ids, bboxes, tags, image_path, words = eliminate_blank(img_ids, bboxes, tags, image_path, words)
 
-    img_ids = []
-    image_path = []
-    bboxes = []
-    tags = []
-    words = []
-
-    def check_bbox_in(b1, b2):
-        if b1[0]<=b2[0] and b1[1]<=b2[1] and b1[0]+b1[2]>=b2[0]+b2[2] and b1[1]+b1[3]>=b2[1]+b2[3]:
-            return True
-
-    for i_doc in range(len(dataset)):
-
-        img_ids.append(dataset[i_doc]['id'])
-        image_path.append(dataset[i_doc]['image_path'])
-        tags.append([])
-        bboxes.append([])
-        words.append([])
-
-        for i_bb in range(len(dataset[i_doc]['bboxes'])):
-
-            if dataset[i_doc]['tags'][i_bb] in [3,7]:
-                tags[-1].append(dataset[i_doc]['tags'][i_bb])
-                bboxes[-1].append(dataset[i_doc]['bboxes'][i_bb])
-                words[-1].append('')
-
-            else:
-                for text in words_bb[i_doc]:
-                    if check_bbox_in(dataset[i_doc]['bboxes'][i_bb], text[1]) and text[0] not in ['$', '.', '–', '_', '(', ')', '%', '#']:
-                        tags[-1].append(dataset[i_doc]['tags'][i_bb])
-                        bboxes[-1].append(text[1])
-                        words[-1].append(text[0])
+    bboxes = resize_bboxes(bboxes, 24/1025.)
 
     my_dict = {'id': img_ids,
             'bboxes': bboxes,
@@ -124,13 +71,7 @@ if MODE == "multimodal":
             'tags': tags,
             'image_path': image_path}
 
-    features = Features({'id': Value(dtype='int64', id=None),
-        'bboxes': Sequence(feature=Sequence(feature=Value(dtype='float64', id=None), length=-1, id=None), length=-1, id=None),
-        'words': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
-        'tags': Sequence(ClassLabel(num_classes=11, names=classes, id=None), length=-1, id=None),
-        'image_path': Value(dtype='string', id=None)})
-
-    dataset = Dataset.from_dict(my_dict, features=features)
+    dataset = Dataset.from_dict(my_dict)
 
 
 # Saving the dataset to the local disk
