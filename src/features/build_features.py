@@ -32,19 +32,34 @@ images = load_dataset('json', data_files={'train': data_path+'train.json', 'test
 # Previewing the size of the dataset for the chosen partiton
 print(f"Dataset size: {len(ds_raw[PART])}, using a total number of {len(images[PART])} images")
 
-# Structuring the dataset per document
-img_ids, bboxes, tags, image_path = vision_features(ds_raw, images, PART)
+# Structuring the vision dataset per document
+img_ids_raw, bboxes_raw, tags_raw, image_path_raw = vision_features(ds_raw, images, PART)
+
+print(f"image_path_raw: {len(image_path_raw)}")
+
+# Declaring a non normalized version of the dataset that will be used for the multimodal dataset structuring
+my_dict = {'id': img_ids_raw,
+           'bboxes': bboxes_raw,
+           'tags': tags_raw,
+           'image_path': image_path_raw}
+
+non_normalized_dataset = Dataset.from_dict(my_dict)
+
+print(f"non norm dataset: {len(non_normalized_dataset)}")
 
 # Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
-bboxes = organize_bboxes(bboxes)
+bboxes = organize_bboxes(bboxes_raw)
 
 # Eliminating blank documents from the dataset
-img_ids, bboxes, tags, image_path = eliminate_blank(img_ids, bboxes, tags, image_path)
+img_ids, bboxes, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags_raw, image_path_raw)
+
+print(f"post elimination: {len(image_path)}")
+print(f"post elimination: {len(image_path_raw)}")
 
 # Resizing bboxes from 1025x1025 to a 224x224 format
 bboxes = resize_bboxes(bboxes, 224/1025.)
 
-# Creating a new dataset based on the previous process
+# Creating a final normalized dataset
 classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture','Section-Header', 'Table', 'Text', 'Title']
 
 my_dict = {'id': img_ids,
@@ -56,15 +71,22 @@ dataset = Dataset.from_dict(my_dict)
 
 if MODE == "multimodal":
 
-    words_bb = text_features(data_path_text, image_path)
+    # Extracting bboxes and textual information from JSON folders
+    words_bb = text_features(data_path_text, image_path_raw)
 
-    img_ids, bboxes, tags, image_path, words = multimodal_features(dataset, words_bb)
+    # Structuring the multimodal dataset per document
+    img_ids, bboxes, tags, image_path, words = multimodal_features(non_normalized_dataset, words_bb)
+
+    # Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
+    bboxes = organize_bboxes(bboxes)
 
     # Eliminating blank documents from the dataset
     img_ids, bboxes, tags, image_path, words = eliminate_blank(img_ids, bboxes, tags, image_path, words)
 
-    bboxes = resize_bboxes(bboxes, 24/1025.)
+    # Resizing bboxes from 1025x1025 to a 224x224 format
+    bboxes = resize_bboxes(bboxes, 224/1025.)
 
+    # Creating a final normalized dataset
     my_dict = {'id': img_ids,
             'bboxes': bboxes,
             'words': words,

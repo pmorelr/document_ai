@@ -183,11 +183,12 @@ def resize_bboxes(bboxes, scale):
         bboxes (`list`): 
             Resized bounding box data.
     """
-    for i_doc in range(len(bboxes)):
-        for i_box in range(len(bboxes[i_doc])):
-            bboxes[i_doc][i_box] = list(np.array(bboxes[i_doc][i_box])*scale)
+    tmp_bboxes = bboxes[:]
+    for i_doc in range(len(tmp_bboxes)):
+        for i_box in range(len(tmp_bboxes[i_doc])):
+            tmp_bboxes[i_doc][i_box] = list(np.array(tmp_bboxes[i_doc][i_box])*scale)
     
-    return bboxes
+    return tmp_bboxes
 
 
 def eliminate_blank(img_ids, bboxes, tags, image_path, words=False):
@@ -209,17 +210,19 @@ def eliminate_blank(img_ids, bboxes, tags, image_path, words=False):
         A version of all aforementioned lists without blank data.
     """
 
-    empty_i = [i_doc for i_doc in range(len(bboxes)) if bboxes[i_doc] == []]
+    tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path = img_ids[:], bboxes[:], tags[:], image_path[:]
+
+    empty_i = [i_doc for i_doc in range(len(tmp_bboxes)) if tmp_bboxes[i_doc] == []]
 
     for index in sorted(empty_i, reverse=True):
-        del bboxes[index]
-        del img_ids[index]
-        del image_path[index]
-        del tags[index]
+        del tmp_bboxes[index]
+        del tmp_img_ids[index]
+        del tmp_image_path[index]
+        del tmp_tags[index]
         if words != False:
             del words[index]
 
     if words != False:
-        return img_ids, bboxes, tags, image_path, words
+        return tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path, words
     else:
-        return img_ids, bboxes, tags, image_path
+        return tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path
