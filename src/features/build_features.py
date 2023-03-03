@@ -2,6 +2,7 @@ from huggingface_hub import notebook_login
 from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequence
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from features_tools import *
+from noise_management import *
 import numpy as np
 import warnings
 import json
@@ -13,14 +14,16 @@ parser.add_argument("-d", "--dataset", default="doclaynet", help="Dataset to be 
 parser.add_argument("-m", "--mode", default='vision',  help="Type of model that will use the processed dataset (text, vision or multimodal)")
 parser.add_argument("-p", "--partition", default='train',  help="Partition of the dataset to be processed (train, test or val)")
 parser.add_argument("-s", "--save", default='json',  help="Format that will be used to save the dataset (json, csv, hf)")
+parser.add_argument("-n", "--noise_manag", default='all',  help="Noise classes management that will be used to train the model (all, merged or ignored)")
 args = vars(parser.parse_args())
 
 DATASET = args['dataset']
 MODE = args['mode']
 PART = args['partition']
 SAVE_TYPE = args['save']
+NOISE_MANAG = args['noise_manag']
 
-# Acessing Dataset
+# Acessing Dataset -> TODO : Add DocBank
 if DATASET == 'doclaynet':
     data_path='../../data/raw/DocLayNet/COCO/'
     data_path_text='../../data/raw/DocLayNet/JSON/'
@@ -50,8 +53,17 @@ print(f"non norm dataset: {len(non_normalized_dataset)}")
 # Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
 bboxes = organize_bboxes(bboxes_raw)
 
+
+# Managing noise classes
+noise_managed_dataset = noise_management(non_normalized_dataset, NOISE_MANAG)
+
+img_ids_noise_managed = noise_managed_dataset['id']
+bboxes_noise_managed = noise_managed_dataset['bboxes']
+tags_noise_managed = noise_managed_dataset['tags']
+image_path_noise_managed = noise_managed_dataset['image_path']
+
 # Eliminating blank documents from the dataset
-img_ids, bboxes, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags_raw, image_path_raw)
+img_ids, bboxes, tags, image_path = eliminate_blank(img_ids_noise_managed, bboxes_noise_managed, tags_noise_managed, image_path_noise_managed)
 
 print(f"post elimination: {len(image_path)}")
 print(f"post elimination: {len(image_path_raw)}")
@@ -60,7 +72,7 @@ print(f"post elimination: {len(image_path_raw)}")
 bboxes = resize_bboxes(bboxes, 224/1025.)
 
 # Creating a final normalized dataset
-classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture','Section-Header', 'Table', 'Text', 'Title']
+classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture',' Section-Header', 'Table', 'Text', 'Title']
 
 my_dict = {'id': img_ids,
            'bboxes': bboxes,
