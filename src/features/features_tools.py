@@ -136,6 +136,7 @@ def multimodal_features(vision_dataset, words_bb):
     img_ids = []
     image_path = []
     bboxes = []
+    areas =[]
     tags = []
     words = []
 
@@ -145,20 +146,23 @@ def multimodal_features(vision_dataset, words_bb):
         tags.append([])
         bboxes.append([])
         words.append([])
+        areas.append([])
 
         for i_bb in range(len(vision_dataset[i_doc]['bboxes'])):
             if vision_dataset[i_doc]['tags'][i_bb] in [3,7]:
                 tags[-1].append(vision_dataset[i_doc]['tags'][i_bb])
                 bboxes[-1].append(vision_dataset[i_doc]['bboxes'][i_bb])
+                areas[-1].append(vision_dataset[i_doc]['areas'][i_bb])
                 words[-1].append('')
             else:
                 for text in words_bb[i_doc]:
                     if check_bbox_in(vision_dataset[i_doc]['bboxes'][i_bb], text[1]) and text[0] not in ['$', '.', '–', '_', '(', ')', '%', '#']:
                         tags[-1].append(vision_dataset[i_doc]['tags'][i_bb])
+                        areas[-1].append(vision_dataset[i_doc]['areas'][i_bb])
                         bboxes[-1].append(text[1])
                         words[-1].append(text[0])
 
-    return img_ids, bboxes, tags, image_path, words 
+    return img_ids, bboxes, areas, tags, image_path, words 
 
 
 def resize_bboxes(bboxes, scale):
@@ -201,10 +205,7 @@ def eliminate_blank(img_ids, bboxes, tags, image_path, areas=False, words=False)
         A version of all aforementioned lists without blank data.
     """
 
-    tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path = img_ids[:], bboxes[:], tags[:], image_path[:]
-
-    if areas !=False:
-        tmp_areas = areas[:]
+    tmp_img_ids, tmp_bboxes, tmp_areas, tmp_tags, tmp_image_path = img_ids[:], bboxes[:], areas[:], tags[:], image_path[:]
 
     empty_i = [i_doc for i_doc in range(len(tmp_bboxes)) if tmp_bboxes[i_doc] == []]
 
@@ -213,12 +214,11 @@ def eliminate_blank(img_ids, bboxes, tags, image_path, areas=False, words=False)
         del tmp_img_ids[index]
         del tmp_image_path[index]
         del tmp_tags[index]
+        del tmp_areas[index]
         if words != False:
             del words[index]
-        if areas != False:
-            del tmp_areas[index]
 
     if words != False:
-        return tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path, words
+        return tmp_img_ids, tmp_bboxes, tmp_areas, tmp_tags, tmp_image_path, words
     else:
         return tmp_img_ids, tmp_bboxes, tmp_areas, tmp_tags, tmp_image_path

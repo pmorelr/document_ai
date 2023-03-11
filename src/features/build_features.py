@@ -37,6 +37,7 @@ img_ids_raw, bboxes_raw, areas_raw, tags_raw, image_path_raw = vision_features(d
 # Declaring a non normalized version of the dataset that will be used for the multimodal dataset structuring
 my_dict = {'id': img_ids_raw,
            'bboxes': bboxes_raw,
+           'areas': areas_raw,
            'tags': tags_raw,
            'image_path': image_path_raw}
 
@@ -49,7 +50,7 @@ bboxes = organize_bboxes(bboxes_raw)
 img_ids, bboxes, areas, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags_raw, image_path_raw, areas=areas_raw)
 
 # Resizing bboxes from 1025x1025 to a 224x224 format
-bboxes = resize_bboxes(bboxes, 224/1025.)
+bboxes = resize_bboxes(bboxes, 1.) #224/1025.
 
 # Creating a final normalized dataset
 classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture','Section-Header', 'Table', 'Text', 'Title']
@@ -68,13 +69,13 @@ if MODE == "multimodal":
     words_bb = text_features(data_path_text, image_path_raw)
 
     # Structuring the multimodal dataset per document
-    img_ids, bboxes, tags, image_path, words = multimodal_features(non_normalized_dataset, words_bb)
+    img_ids, bboxes, areas, tags, image_path, words = multimodal_features(non_normalized_dataset, words_bb)
 
     # Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
     bboxes = organize_bboxes(bboxes)
 
     # Eliminating blank documents from the dataset
-    img_ids, bboxes, tags, image_path, words = eliminate_blank(img_ids, bboxes, tags, image_path, words=words)
+    img_ids, bboxes, tags, areas, image_path, words = eliminate_blank(img_ids, bboxes, tags, image_path, areas=areas, words=words)
 
     # Resizing bboxes from 1025x1025 to a 224x224 format
     bboxes = resize_bboxes(bboxes, 224/1025.)
