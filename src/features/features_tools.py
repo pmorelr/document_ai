@@ -24,7 +24,7 @@ def vision_features(raw_dataset, images, part):
             Contains the path to a specific image. Each index is in accordance with the image in every other list.
     """
 
-    bboxes_raw, tags, img_ids, image_path = [[]], [[]], [], []
+    bboxes_raw, tags, areas, img_ids, image_path = [[]], [[]], [[]], [], []
 
     img_id = raw_dataset[part][0]['image_id']
     img_ids.append(img_id)
@@ -32,9 +32,11 @@ def vision_features(raw_dataset, images, part):
     for i in range(len(raw_dataset[part])):
         if raw_dataset[part][i]['image_id'] == img_id:
             bboxes_raw[-1].append(raw_dataset[part][i]['bbox'])
+            areas[-1].append(raw_dataset[part][i]['area'])
             tags[-1].append(raw_dataset[part][i]['category_id'] -1)
         else:
             bboxes_raw.append([])
+            areas.append([])
             tags.append([])
             img_ids.append(raw_dataset[part][i]['image_id'])
         img_id = raw_dataset[part][i]['image_id']
@@ -45,7 +47,7 @@ def vision_features(raw_dataset, images, part):
             j+=1
         image_path.append(images[part][j]['file_name'])
 
-    return img_ids, bboxes_raw, tags, image_path
+    return img_ids, bboxes_raw, areas, tags, image_path
 
 
 def organize_bboxes(bboxes_raw):
@@ -180,7 +182,7 @@ def resize_bboxes(bboxes, scale):
     return tmp_bboxes
 
 
-def eliminate_blank(img_ids, bboxes, tags, image_path, words=False):
+def eliminate_blank(img_ids, bboxes, tags, image_path, areas=False, words=False):
     """
     Eliminates documents that don't contribute to the dataset..
 
@@ -201,6 +203,9 @@ def eliminate_blank(img_ids, bboxes, tags, image_path, words=False):
 
     tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path = img_ids[:], bboxes[:], tags[:], image_path[:]
 
+    if areas !=False:
+        tmp_areas = areas[:]
+
     empty_i = [i_doc for i_doc in range(len(tmp_bboxes)) if tmp_bboxes[i_doc] == []]
 
     for index in sorted(empty_i, reverse=True):
@@ -210,8 +215,10 @@ def eliminate_blank(img_ids, bboxes, tags, image_path, words=False):
         del tmp_tags[index]
         if words != False:
             del words[index]
+        if areas != False:
+            del tmp_areas[index]
 
     if words != False:
         return tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path, words
     else:
-        return tmp_img_ids, tmp_bboxes, tmp_tags, tmp_image_path
+        return tmp_img_ids, tmp_bboxes, tmp_areas, tmp_tags, tmp_image_path
