@@ -1,4 +1,3 @@
-from huggingface_hub import notebook_login
 from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequence
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from features_tools import *
@@ -35,8 +34,6 @@ print(f"Dataset size: {len(ds_raw[PART])}, using a total number of {len(images[P
 # Structuring the vision dataset per document
 img_ids_raw, bboxes_raw, tags_raw, image_path_raw = vision_features(ds_raw, images, PART)
 
-print(f"image_path_raw: {len(image_path_raw)}")
-
 # Declaring a non normalized version of the dataset that will be used for the multimodal dataset structuring
 my_dict = {'id': img_ids_raw,
            'bboxes': bboxes_raw,
@@ -45,16 +42,11 @@ my_dict = {'id': img_ids_raw,
 
 non_normalized_dataset = Dataset.from_dict(my_dict)
 
-print(f"non norm dataset: {len(non_normalized_dataset)}")
-
 # Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
 bboxes = organize_bboxes(bboxes_raw)
 
 # Eliminating blank documents from the dataset
 img_ids, bboxes, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags_raw, image_path_raw)
-
-print(f"post elimination: {len(image_path)}")
-print(f"post elimination: {len(image_path_raw)}")
 
 # Resizing bboxes from 1025x1025 to a 224x224 format
 bboxes = resize_bboxes(bboxes, 224/1025.)
