@@ -79,6 +79,7 @@ target/
 /data/external
 /data/internal
 /data/raw
+/data/processed
 
 # Mac OS-specific storage files
 .DS_Store
