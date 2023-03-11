@@ -156,17 +156,6 @@ def multimodal_features(vision_dataset, words_bb):
                         bboxes[-1].append(text[1])
                         words[-1].append(text[0])
 
-    '''
-    empty_i = [i_doc for i_doc in range(len(bboxes)) if bboxes[i_doc] == []]
-    for index in sorted(empty_i, reverse=True):
-        del bboxes[index]
-        del img_ids[index]
-        del image_path[index]
-        del tags[index]
-        del words[index]
-
-    '''
-
     return img_ids, bboxes, tags, image_path, words 
 
 
