@@ -156,7 +156,9 @@ def multimodal_features(vision_dataset, words_bb):
                 words[-1].append('')
             else:
                 for text in words_bb[i_doc]:
-                    if check_bbox_in(vision_dataset[i_doc]['bboxes'][i_bb], text[1]) and text[0] not in ['$', '.', '–', '_', '(', ')', '%', '#']:
+                    if (check_bbox_in(vision_dataset[i_doc]['bboxes'][i_bb], text[1]) and
+                         text[0] not in ['$', '.', '–', '_', '(', ')', '%', '#'] and
+                         text[0] != ''):
                         tags[-1].append(vision_dataset[i_doc]['tags'][i_bb])
                         areas[-1].append(vision_dataset[i_doc]['areas'][i_bb])
                         bboxes[-1].append(text[1])
