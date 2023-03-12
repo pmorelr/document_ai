@@ -59,14 +59,7 @@ tags_noise_managed = noise_managed_dataset['tags']
 image_path_noise_managed = noise_managed_dataset['image_path']
 
 # Eliminating blank documents from the dataset
-<<<<<<< HEAD
 img_ids, bboxes, areas, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags_raw, image_path_raw, areas=areas_raw)
-=======
-img_ids, bboxes, tags, image_path = eliminate_blank(img_ids_noise_managed, bboxes_noise_managed, tags_noise_managed, image_path_noise_managed)
-
-print(f"post elimination: {len(image_path)}")
-print(f"post elimination: {len(image_path_raw)}")
->>>>>>> classes_management2
 
 # Resizing bboxes from 1025x1025 to a 224x224 format
 bboxes = resize_bboxes(bboxes, 1.) #224/1025.
