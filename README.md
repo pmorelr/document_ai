@@ -1,7 +1,9 @@
-document_ai
+Deep Learning Based Document Layout Analysis
 ==============================
 
-ENSTA Paris student project in partnership with BNP Paribas focused on document layout analysis and segmentation, using state-of-the-art AI tools.
+ENSTA Paris student project in partnership with BNP Paribas focused on document layout analysis and segmentation, using state-of-the-art AI tools. 
+
+The processed data can be found in [this link](https://drive.google.com/drive/folders/167k-SrAM5qpCO3hkSZHenA6Z4Bqk3YB_?usp=sharing)
 
 Project Organization
 ------------
