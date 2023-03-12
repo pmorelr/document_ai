@@ -96,3 +96,5 @@ target/
 /data/raw/DocLayNet/JSON
 /data/raw/DocLayNet/PNG
 /data/raw/DocLayNet/COCO
+
+tox.ini
