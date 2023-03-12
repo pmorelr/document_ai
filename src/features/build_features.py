@@ -49,14 +49,19 @@ non_normalized_dataset = Dataset.from_dict(my_dict)
 # Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
 bboxes = organize_bboxes(bboxes_raw)
 
-
 # Managing noise classes
 noise_managed_dataset = noise_management(non_normalized_dataset, NOISE_MANAG)
 
-img_ids_noise_managed = noise_managed_dataset['id']
-bboxes_noise_managed = noise_managed_dataset['bboxes']
-tags_noise_managed = noise_managed_dataset['tags']
-image_path_noise_managed = noise_managed_dataset['image_path']
+#img_ids_noise_managed = noise_managed_dataset['id']
+#bboxes_noise_managed = noise_managed_dataset['bboxes']
+#tags_noise_managed = noise_managed_dataset['tags']
+#image_path_noise_managed = noise_managed_dataset['image_path']
+
+img_ids = noise_managed_dataset['id']
+bboxes = noise_managed_dataset['bboxes']
+areas = noise_managed_dataset['areas']
+tags = noise_managed_dataset['tags']
+image_path = noise_managed_dataset['image_path']
 
 # Eliminating blank documents from the dataset
 img_ids, bboxes, areas, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags_raw, image_path_raw, areas=areas_raw)
@@ -103,4 +108,4 @@ if MODE == "multimodal":
 
 
 # Saving the dataset to the local disk
-dataset.to_json(f'{DATASET}_{MODE}_{PART}.{SAVE_TYPE}') 
+dataset.to_json(f'{DATASET}_{MODE}_{PART}_{NOISE_MANAG}.{SAVE_TYPE}') 
