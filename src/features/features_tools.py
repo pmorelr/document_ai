@@ -2,7 +2,7 @@ from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequenc
 import numpy as np
 import json
 
-def vision_features(raw_dataset, images, part):
+def vision_features(raw_dataset, images):#, part):
     """
     Extracts and structures features for vision only models. 
 
@@ -24,6 +24,33 @@ def vision_features(raw_dataset, images, part):
             Contains the path to a specific image. Each index is in accordance with the image in every other list.
     """
 
+    bboxes_raw, tags, areas, img_ids, image_path = [[]], [[]], [[]], [], []
+
+    img_id = raw_dataset[0]['image_id']
+    img_ids.append(img_id)
+
+    for i in range(len(raw_dataset)):
+        if raw_dataset[i]['image_id'] == img_id:
+            bboxes_raw[-1].append(raw_dataset[i]['bbox'])
+            areas[-1].append(raw_dataset[i]['area'])
+            tags[-1].append(raw_dataset[i]['category_id'] -1)
+        else:
+            bboxes_raw.append([])
+            areas.append([])
+            tags.append([])
+            img_ids.append(raw_dataset[i]['image_id'])
+        img_id = raw_dataset[i]['image_id']
+
+    j = 0
+    for i in range(len(img_ids)):
+        while img_ids[i] != images[j]['id']:
+            j+=1
+        image_path.append(images[j]['file_name'])
+
+    return img_ids, bboxes_raw, areas, tags, image_path
+
+
+'''
     bboxes_raw, tags, areas, img_ids, image_path = [[]], [[]], [[]], [], []
 
     img_id = raw_dataset[part][0]['image_id']
@@ -48,6 +75,7 @@ def vision_features(raw_dataset, images, part):
         image_path.append(images[part][j]['file_name'])
 
     return img_ids, bboxes_raw, areas, tags, image_path
+'''
 
 
 def organize_bboxes(bboxes_raw):
