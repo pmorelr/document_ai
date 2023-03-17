@@ -85,7 +85,7 @@ if MODE == "multimodal":
     bboxes = organize_bboxes(bboxes)
 
     # Eliminating blank documents from the dataset
-    img_ids, bboxes, tags, areas, image_path, words = eliminate_blank(img_ids, bboxes, tags, image_path, areas=areas, words=words)
+    img_ids, bboxes, areas, tags, image_path, words = eliminate_blank(img_ids, bboxes, tags, image_path, areas=areas, words=words)
 
     # Resizing bboxes from 1025x1025 to a 224x224 format
     bboxes = resize_bboxes(bboxes, 224/1025.)
