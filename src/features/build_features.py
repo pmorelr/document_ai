@@ -38,7 +38,7 @@ images = load_dataset('json', data_files=data_path+PART+'.json', field='images',
 #print(f"Dataset size: {len(ds_raw[PART])}, using a total number of {len(images[PART])} images")
 
 # Structuring the vision dataset per document
-img_ids_raw, bboxes_raw, areas_raw, tags_raw, image_path_raw = vision_features(ds_raw, images)#, PART)
+img_ids_raw, bboxes_raw, areas_raw, tags_raw, image_path_raw = vision_features(ds_raw, images)
 
 # Declaring a non normalized version of the dataset that will be used for the multimodal dataset structuring
 my_dict = {'id': img_ids_raw,
@@ -49,28 +49,15 @@ my_dict = {'id': img_ids_raw,
 
 non_normalized_dataset = Dataset.from_dict(my_dict)
 
-# Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
-#bboxes = organize_bboxes(bboxes_raw)
-
 # Managing noise classes
 noise_managed_dataset = noise_management(non_normalized_dataset, NOISE_MANAG)
-
-#img_ids_noise_managed = noise_managed_dataset['id']
-#bboxes_noise_managed = noise_managed_dataset['bboxes']
-#tags_noise_managed = noise_managed_dataset['tags']
-#image_path_noise_managed = noise_managed_dataset['image_path']
-
-img_ids = noise_managed_dataset['id']
-bboxes = noise_managed_dataset['bboxes']
-areas = noise_managed_dataset['areas']
 tags = noise_managed_dataset['tags']
-image_path = noise_managed_dataset['image_path']
 
 # Changing bbox convention from (x0, y0, width, height) to (x0, y0, x1, y1)
-bboxes = organize_bboxes(bboxes)
+bboxes = organize_bboxes(bboxes_raw)
 
 # Eliminating blank documents from the dataset
-img_ids, bboxes, areas, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags_raw, image_path_raw, areas=areas_raw)
+img_ids, bboxes, areas, tags, image_path = eliminate_blank(img_ids_raw, bboxes, tags, image_path_raw, areas=areas_raw)
 
 # Resizing bboxes from 1025x1025 to a 224x224 format
 bboxes = resize_bboxes(bboxes, 1.) #224/1025.
