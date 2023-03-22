@@ -8,6 +8,8 @@ import numpy as np
 import torch
 import os
 
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
 HF_HUB = False
 OCR = False
 IMAGE_INDEX = 20
@@ -96,7 +98,7 @@ def run_inference(path, model=model, processor=processor, output_image=True, OCR
         padding="max_length",
         truncation=True,
         return_tensors="pt",
-        )
+        ).to(device)
 
         del encoding["image"]
 

@@ -8,6 +8,8 @@ import numpy as np
 import torch
 import os
 
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
 HF_HUB = False
 
 repository_id = "../../models/LayoutLM/layoutlm-doclaynet" 
@@ -83,13 +85,13 @@ proc_train_dataset = train_dataset.map(
     partial(process, processor=processor),
     remove_columns=["image_path", 'words', "tags", "id", "bboxes"],
     features=features,
-).with_format("torch")
+).with_format("torch").to(device)
 
 proc_test_dataset = test_dataset.map(
     partial(process, processor=processor),
     remove_columns=["image_path", 'words', "tags", "id", "bboxes"],
     features=features,
-).with_format("torch")
+).with_format("torch").to(device)
 
 # -------- Evaluation  ----------
 # Load seqeval metric.
