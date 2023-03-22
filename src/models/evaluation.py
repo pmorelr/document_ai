@@ -22,13 +22,16 @@ PART = args['partition']
 SAVE_TYPE = args['save']
 NOISE_MANAG = args['noise_manag']
 
-# Build test features
+# Retrieve test features
 # --> We assume that the features have already been built and saved in the data/processed folder
 
-# Perform inference with the chosen model and save the results
+# Perform inference on test data with the chosen model and save the results
 # --> TODO : Implement the inference for each model
+# LayoutLM = Classification -> Métriques de classification
+# MaskRCNN = Detection -> Métriques de détection
+# Comparaison uniquement sur les F1-Score
 
 # Evaluate the results
-#metrics = evaluate_seqeval(predictions, labels, ner_labels)
+#metrics = evaluate_seqeval(predictions, labels, ner_labels) #-> for LayoutLM
 
 # Plot the metrics
