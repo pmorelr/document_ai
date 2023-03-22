@@ -50,33 +50,6 @@ def vision_features(raw_dataset, images):#, part):
     return img_ids, bboxes_raw, areas, tags, image_path
 
 
-'''
-    bboxes_raw, tags, areas, img_ids, image_path = [[]], [[]], [[]], [], []
-
-    img_id = raw_dataset[part][0]['image_id']
-    img_ids.append(img_id)
-
-    for i in range(len(raw_dataset[part])):
-        if raw_dataset[part][i]['image_id'] == img_id:
-            bboxes_raw[-1].append(raw_dataset[part][i]['bbox'])
-            areas[-1].append(raw_dataset[part][i]['area'])
-            tags[-1].append(raw_dataset[part][i]['category_id'] -1)
-        else:
-            bboxes_raw.append([])
-            areas.append([])
-            tags.append([])
-            img_ids.append(raw_dataset[part][i]['image_id'])
-        img_id = raw_dataset[part][i]['image_id']
-
-    j = 0
-    for i in range(len(img_ids)):
-        while img_ids[i] != images[part][j]['id']:
-            j+=1
-        image_path.append(images[part][j]['file_name'])
-
-    return img_ids, bboxes_raw, areas, tags, image_path
-'''
-
 
 def organize_bboxes(bboxes_raw):
     """
