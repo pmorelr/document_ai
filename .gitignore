@@ -92,7 +92,7 @@ target/
 .mypy_cache/
 
 # Data
-/data/processed/DocLayNet/
+/data/processed/DocLayNet
 /data/raw/DocLayNet/JSON
 /data/raw/DocLayNet/PNG
 /data/raw/DocLayNet/COCO
