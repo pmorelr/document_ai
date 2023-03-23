@@ -23,11 +23,15 @@ if __name__ == "__main__":
     SAVE_TYPE = args['save']
     NOISE_MANAG = args['noise_manag']
 
+    pre_path='../../'
+
+else:
+    pre_path='./'
+
+data_path = pre_path+'data/raw/DocLayNet/COCO/'
+data_path_text= pre_path+'data/raw/DocLayNet/JSON/'
+
 def run(DATASET, MODE, PART, SAVE_TYPE, NOISE_MANAG):
-    # Acessing Dataset -> TODO : Add DocBank
-    if DATASET == 'doclaynet':
-        data_path='../../data/raw/DocLayNet/COCO/'
-        data_path_text='../../data/raw/DocLayNet/JSON/'
 
     # Using HuggingFace's function to load the chosen dataset
     ds_raw = load_dataset('json', data_files=data_path+PART+'.json', field='annotations', split='train[:100%]')
@@ -115,7 +119,8 @@ def run(DATASET, MODE, PART, SAVE_TYPE, NOISE_MANAG):
 
 
     # Saving the dataset to the local disk
-    dataset.to_json(f'{DATASET}_{MODE}_{PART}_{NOISE_MANAG}.{SAVE_TYPE}') 
+    dataset.to_json(pre_path+f'data/processed/DocLayNet/{DATASET}_{MODE}_{PART}_{NOISE_MANAG}.{SAVE_TYPE}') 
+    print('The features were successfully extracted and saved!')
 
 if __name__ == "__main__":
     run(DATASET, MODE, PART, SAVE_TYPE, NOISE_MANAG)
