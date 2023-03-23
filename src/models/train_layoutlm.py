@@ -8,22 +8,21 @@ import numpy as np
 import torch
 import os
 
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-HF_HUB = False
+HF_HUB = True
 
-repository_id = "../../models/LayoutLM/layoutlm-doclaynet" 
+repository_id = "../../models/LayoutLM/layoutlm-doclaynet-triplet" 
 
 if HF_HUB == True:
-    hub_repository_id = "layoutlm-doclaynet"
-    notebook_login()
+    hub_repository_id = "layoutlm-doclaynet-triplet"
     hub_args = dict(
         report_to="tensorboard",
         push_to_hub=True,
         hub_private_repo=True,
         hub_strategy="every_save",
         hub_model_id=hub_repository_id,
-        hub_token=HfFolder.get_token()
+        hub_token='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'
     )
 else:
     hub_args = dict(
@@ -44,8 +43,8 @@ features_raw = Features(
     'tags': Sequence(ClassLabel(num_classes=11, names=classes, id=None), length=-1, id=None),
     'image_path': Value(dtype='string', id=None)})
 
-train_dataset = load_dataset('json', data_files=DATA_PATH+'doclaynet_multimodal_train.json', features=features_raw, split='train[:1%]')
-test_dataset = load_dataset('json', data_files=DATA_PATH+'doclaynet_multimodal_test.json', features=features_raw, split='train[:1%]')
+train_dataset = load_dataset('json', data_files=DATA_PATH+'doclaynet_multimodal_train_triplet.json', features=features_raw, split='train[:100%]')
+val_dataset = load_dataset('json', data_files=DATA_PATH+'doclaynet_multimodal_val_triplet.json', features=features_raw, split='train[:100%]')
 
 labels = train_dataset.features['tags'].feature.names
 
@@ -85,13 +84,13 @@ proc_train_dataset = train_dataset.map(
     partial(process, processor=processor),
     remove_columns=["image_path", 'words', "tags", "id", "bboxes"],
     features=features,
-).with_format("torch").to(device)
+).with_format("torch")
 
-proc_test_dataset = test_dataset.map(
+proc_val_dataset = val_dataset.map(
     partial(process, processor=processor),
     remove_columns=["image_path", 'words', "tags", "id", "bboxes"],
     features=features,
-).with_format("torch").to(device)
+).with_format("torch")
 
 # -------- Evaluation  ----------
 # Load seqeval metric.
@@ -99,6 +98,7 @@ metric = evaluate.load("seqeval")
 
 # Labels of the model.
 ner_labels = list(model.config.id2label.values())
+ner_labels = ['B-' + s for s in ner_labels]
 
 # Metrics function that will be triggered at the end of each epoch.
 def compute_metrics(p):
@@ -120,7 +120,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Defining Training Arguments
 training_args = TrainingArguments(
     output_dir=repository_id,
-    num_train_epochs=2,
+    num_train_epochs=15,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=8,
     fp16=False,
@@ -140,7 +140,7 @@ trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=proc_train_dataset,
-    eval_dataset=proc_test_dataset,
+    eval_dataset=proc_val_dataset,
     compute_metrics=compute_metrics,
 )
 
