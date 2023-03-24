@@ -69,17 +69,13 @@ if MODE == 1:
     model_i = discrete_console("\nChoose the model you intend to train:\n\n[1] - Mask R-CNN\n[2] - LayoutLM\n[3] - LayoutLMv3\n\n>", 3)
     noise_i = discrete_console("\nChoose the noise labelling you intend to use:\n\n[1] - Default\n[2] - Binary\n[3] - Triplet\n\n>", 3)
     n_epochs = open_console("\nChoose the number of epochs that will be performed:\n\n>", int)
-    repository_id = open_console("\nChoose a name for your model (it will be saved in the /models folder):\n\n>", str)
 
     noise = noises[noise_i]
 
     if model_i == 0: #MaskRCNN TODO
         None
 
-    if model_i == 2: #LayoutLMV3 TODO
-        None
-
-    if model_i == 1: #LayoutLMv1
+    if model_i == 1: 
 
         import train_layoutlm
 
@@ -87,13 +83,70 @@ if MODE == 1:
         hf_hub = discrete_console("\nWould you like to connect to the HuggingFace hub?\n\n[1] - No\n[2] - Yes\n\n>", 2)
 
         if hf_hub == 1:
-            hf_hub_id = open_console("\nPlease select a name for your model at HuggingFace's hub:\n\n>", str)
+            repository_id = open_console("\nPlease select a name for your model at HuggingFace's hub:\n\n>", str)
             hf_hub_token = open_console("\nPlease insert your HuggingFace token:\n\n>", str)
         else:
-            hf_hub_id, hf_hub_token = None, None
+            repository_id = open_console("\nChoose a name for your model (it will be saved in the models folder):\n\n>", str)
+            hf_hub_token = None
         
-        train_layoutlm.run(noise, str(train_part), n_epochs, repository_id, hf_hub, hf_hub_id, hf_hub_token)
+        train_layoutlm.run(noise, str(train_part), n_epochs, repository_id, hf_hub, hf_hub_token)
     
+    if model_i == 2: 
+
+        import train_layoutlmv3
+
+        hf_hub = discrete_console("\nWould you like to connect to the HuggingFace hub?\n\n[1] - No\n[2] - Yes\n\n>", 2)
+
+        if hf_hub == 1:
+            repository_id = open_console("\nPlease select a name for your model at HuggingFace's hub:\n\n>", str)
+            hf_hub_token = open_console("\nPlease insert your HuggingFace token:\n\n>", str)
+        else:
+            repository_id = open_console("\nChoose a name for your model (it will be saved in the models folder):\n\n>", str)
+            hf_hub_token = None
+        
+        train_layoutlmv3.run(noise, n_epochs, repository_id, hf_hub, hf_hub_token)
+
+if MODE == 2:
+        
+    sys.path.insert(1, './src/models/')
+
+    noises = ['default', 'binary', 'triplet']
+
+    model_i = discrete_console("\nChoose the model you intend to evaluate:\n\n[1] - Mask R-CNN\n[2] - LayoutLM\n[3] - LayoutLMv3\n\n>", 3)
+    noise_i = discrete_console("\nChoose the noise labelling you intend to use:\n\n[1] - Default\n[2] - Binary\n[3] - Triplet\n\n>", 3)
+    
+    noise = noises[noise_i]
+
+    if model_i == 0: #MaskRCNN TODO
+        None
+
+    if model_i == 1:
+        
+        import eval_layoutlm
+
+        test_part = open_console("\nChoose the percentage of test data that will be used for the evaluation (a number from 1 to 100):\n\n>", int)
+        hf_hub = discrete_console("\nWhere is your model saved?\n\n[1] - Locally\n[2] - HuggingFace hub\n\n>", 2)
+
+        if hf_hub == 1:
+            repository_id = open_console("\nSelect the model id at HuggingFace hub:\n\n>", str)
+        else:
+            repository_id = open_console("\nSelect your model id:\n\n>", str)
+
+        eval_layoutlm.run(noise, str(test_part), repository_id, hf_hub)
+
+    if model_i == 2:
+
+        import eval_layoutlmv3
+
+        test_part = open_console("\nChoose the percentage of test data that will be used for the evaluation (a number from 1 to 100):\n\n>", int)
+        hf_hub = discrete_console("\nWhere is your model saved?\n\n[1] - Locally\n[2] - HuggingFace hub\n\n>", 2)
+
+        if hf_hub == 1:
+            repository_id = open_console("\nSelect the model id at HuggingFace hub:\n\n>", str)
+        else:
+            repository_id = open_console("\nSelect your model id:\n\n>", str)
+
+        eval_layoutlmv3.run(noise, str(test_part), repository_id, hf_hub)
 
 
 
