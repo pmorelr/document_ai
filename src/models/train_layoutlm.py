@@ -9,13 +9,12 @@ import torch
 import os
 
 if __name__ == "__main__":
-    NOISE_MANAG = 'default'
+    NOISE_MANAG = 'triplet'
     TRAIN_PART = '1'
-    N_EPOCHS = 10
+    N_EPOCHS = 15
     REPOSITORY_ID = 'layoutlm-doclaynet-'+NOISE_MANAG
-    HF_HUB = False
-    HF_HUB_ID = 'your-hugging-face-model'
-    HF_HUB_TOKEN = 'your-hugging-face-token'
+    HF_HUB = True
+    HF_HUB_TOKEN = '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'
 
     pre_path = '../../'
 
@@ -23,20 +22,19 @@ else:
     pre_path = './'
 
 
-def run(noise_manag, train_part, n_epochs, repository_id, hf_hub=False, hf_hub_id=None, hf_hub_token=None):
+def run(noise_manag, train_part, n_epochs, repository_id, hf_hub=False, hf_hub_token=None):
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    repository_id = pre_path+'models/LayoutLM/'+REPOSITORY_ID
+    local_repository_id = pre_path+'models/LayoutLM/'+repository_id
 
     if hf_hub == True:
-        hub_repository_id = REPOSITORY_ID
         hub_args = dict(
             report_to="tensorboard",
             push_to_hub=True,
             hub_private_repo=True,
             hub_strategy="every_save",
-            hub_model_id=hf_hub_id,
+            hub_model_id=repository_id,
             hub_token=hf_hub_token
         )
     else:
@@ -49,13 +47,21 @@ def run(noise_manag, train_part, n_epochs, repository_id, hf_hub=False, hf_hub_i
     DATA_PATH = pre_path+"data/processed/DocLayNet/"
     PNG_PATH = pre_path+"data/raw/DocLayNet/PNG/"
 
-    classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture','Section-Header', 'Table', 'Text', 'Title']
+    if noise_manag == 'default':
+        classes = ['Caption', 'Footnote', 'Formula', 'List-Item', 'Page-Footer', 'Page-Header', 'Picture','Section-Header', 'Table', 'Text', 'Title']
+        num_classes = 11
+    elif noise_manag == 'binary':
+        classes = ['Info', 'Noise']
+        num_classes = 2
+    elif noise_manag == 'triplet':
+        classes = ['Info', 'Footnote', 'Page-Footer', 'Page-Header']
+        num_classes = 4
 
     features_raw = Features(
         {'id': Value(dtype='int64', id=None),
         'bboxes': Sequence(feature=Sequence(feature=Value(dtype='float64', id=None), length=-1, id=None), length=-1, id=None),
         'words': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
-        'tags': Sequence(ClassLabel(num_classes=11, names=classes, id=None), length=-1, id=None),
+        'tags': Sequence(ClassLabel(num_classes=num_classes, names=classes, id=None), length=-1, id=None),
         'image_path': Value(dtype='string', id=None)})
 
     train_dataset = load_dataset('json', data_files=DATA_PATH+'doclaynet_multimodal_train_'+noise_manag+'.json', features=features_raw, split='train[:'+train_part+'%]')
@@ -134,7 +140,7 @@ def run(noise_manag, train_part, n_epochs, repository_id, hf_hub=False, hf_hub_i
 
     # Defining Training Arguments
     training_args = TrainingArguments(
-        output_dir=repository_id,
+        output_dir=local_repository_id,
         num_train_epochs=n_epochs,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=8,
@@ -171,4 +177,4 @@ def run(noise_manag, train_part, n_epochs, repository_id, hf_hub=False, hf_hub_i
         trainer.push_to_hub()
 
 if __name__ == "__main__":
-    run(NOISE_MANAG, TRAIN_PART, N_EPOCHS, REPOSITORY_ID)
+    run(NOISE_MANAG, TRAIN_PART, N_EPOCHS, REPOSITORY_ID, HF_HUB, HF_HUB_TOKEN)
