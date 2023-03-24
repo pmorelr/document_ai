@@ -1,6 +1,7 @@
 from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequence, Array2D
 from transformers import LayoutLMv2Processor, LayoutLMForTokenClassification
 from PIL import Image, ImageDraw, ImageFont
+import terminaltables
 from functools import partial
 import evaluate
 import numpy as np
