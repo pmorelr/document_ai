@@ -1,16 +1,16 @@
 Deep Learning Based Document Layout Analysis
 ==============================
-
 ## What is this?
-
+----------
 This is a student project of ENSTA Paris in partnership with BNP Paribas focused on Document Layout Analysis using state-of-the-art AI tools. 
 
 This work aims to build an integrated pipeline around the task of classifying entities in documents, using models based on Deep Learning. This comprises the initial steps of extracting features from the datasets we propose to use ([DocLayNet](https://github.com/DS4SD/DocLayNet), [DocBank](https://github.com/doc-analysis/DocBank)), pre-processing the data, training the models, evaluating them; and finally, inference tools with trained models. This same pipeline can be used for fine-tuning other models in the Document AI domain.
 
 Additionally, we conducted a study aimed at the optimal classification of entities that often add noise during document classification, such as headers and footers. For this, we tested different data labeling techniques and made a comparative study about the best methodology to be followed.
 
+----------
 ### Contributions
-
+----------
 Among the activities carried out during this project, we can mention:
 
 - Development of feature extraction scripts from datasets such as [DocLayNet](https://github.com/DS4SD/DocLayNet) and [DocBank](https://github.com/doc-analysis/DocBank).
@@ -20,19 +20,44 @@ Among the activities carried out during this project, we can mention:
 - Conduction a study on the ideal training approach for optimal classification of noisy entities (such as headers and footers).
 
 ----------
-## TODO: How do I run this code?
+## How do I run this code?
 ----------
 
-The processed data can be found in [this link](https://drive.google.com/drive/folders/167k-SrAM5qpCO3hkSZHenA6Z4Bqk3YB_?usp=sharing)
+### 1. Data and Requirements
+
+First, install all the requirements. Then, download [DocLayNet](https://github.com/DS4SD/DocLayNet). Both *core* and *extra* datasets should be downloaded. Their content should be allocated inside `/data/raw/DocLayNet` as follows:
+
+------------
+    *
+    ├── COCO
+    │   ├── test.json
+    │   ├── train.json
+    │   └── val.json
+    ├── PNG
+    │   ├── <hash>.png
+    │   ├── ...
+    ├── JSON
+    │   ├── <hash>.json
+    │   ├── ...
+
+
+### 2. Run `run.py`
+This is the main script of this project that will allow you to browse the tools and models implemented here, without having to run the base scripts (which is, of course, also an option).
+
+Running this script will give the user 3 options:
+- **Feature Extraction**: Preparation of the dataset from its *raw* version to a version with the most adapted structure for model input. You are given the option to get a dataset adapted for vision-only models (Mask R-CNN) or for multimodal models (of the LayoutLM type). It is also possible to select 3 different approaches for noise labeling (default, binary and all). The tools can be found in `/src/features`, where more freedom is given to the user.
+- **Training**: Allows you to train the 3 models implemented here, and to select parameters such as the percentage of training data to be used and the number of epochs. Additionally, for models of the LayoutLM type, you are given the possibility to pull the trained model into the HuggingFace Hub. The original scripts can be found in `/src/models`, and the models will be saved locally in `/models`.
+- **Evaluation**: Provides tools for analyzing your trained models (or similar models available on HuggingFace's Hub).  You are given the option to select the percentage of the test data that will be used. At the end, graphs and statistics linked to the models' score are provided. These scripts can also be found in `/src/models`.
+
 
 ----------------
 
 ## Authors
 - [Youssef Ben Cheikh](https://github.com/YoussefBenCheikh)
 - [Valentin Collumeau](https://github.com/ValColl)
-- [Pedro Morel](https://github.com/pmorelr)
-- [Oumaima Ben Yemna](https://github.com/OumaimaBenYemna)
+- [Pedro Morel Rosa](https://github.com/pmorelr)
 - [Jacques de Chevron Villette](https://github.com/jchevron)
+- [Oumaima Ben Yemna](https://github.com/OumaimaBenYemna)
 
 Project Organization
 ------------
@@ -41,18 +66,13 @@ Project Organization
     ├── Makefile           <- Makefile with commands like `make data` or `make train`
     ├── README.md          <- The top-level README for developers using this project.
     ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
     │   ├── processed      <- The final, canonical data sets for modeling.
     │   └── raw            <- The original, immutable data dump.
     │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
     │
     ├── models             <- Trained and serialized models, model predictions, or model summaries
     │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
+    ├── notebooks          <- Jupyter notebooks. 
     │
     ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
     │
@@ -62,23 +82,18 @@ Project Organization
     ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
     │                         generated with `pip freeze > requirements.txt`
     │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
     ├── src                <- Source code for use in this project.
     │   ├── __init__.py    <- Makes src a Python module
     │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
     │   │
     │   ├── features       <- Scripts to turn raw data into features for modeling
     │   │   └── build_features.py
     │   │
     │   ├── models         <- Scripts to train models and then use trained models to make
     │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
+    │   │   ├── train_scripts.py
+    │   │   └── evaluation_scripts.py
     │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
 
