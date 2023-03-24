@@ -2,6 +2,7 @@ from datasets import load_dataset, Dataset, Features, Value, ClassLabel, Sequenc
 from transformers import LayoutLMv2Processor, LayoutLMForTokenClassification
 from PIL import Image, ImageDraw, ImageFont
 import terminaltables
+import scores_visualization
 from functools import partial
 import evaluate
 import numpy as np
@@ -64,6 +65,8 @@ def run(noise_manag, test_part, repository_id, hf_hub=True):
 
     model = LayoutLMForTokenClassification.from_pretrained(
         MODEL_ID, num_labels=len(labels), label2id=label2id, id2label=id2label)
+    
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # Preprocess function to prepare the correct encoding for the model.
     def process(sample, processor=None):
@@ -134,6 +137,8 @@ def run(noise_manag, test_part, repository_id, hf_hub=True):
         [s['overall_precision'], s['overall_recall'], s['overall_accuracy'], s['overall_f1']]
     ]
 
+    print('\n\n')
+
     table_classif = terminaltables.DoubleTable(s_classif, 'Scores per Entity')
     print(table_classif.table)
 
@@ -141,6 +146,10 @@ def run(noise_manag, test_part, repository_id, hf_hub=True):
 
     table_overall = terminaltables.DoubleTable(s_overall, 'Overall Scores')
     print(table_overall.table)
+
+    print('\n\n')
+
+    scores_visualization.plot_scores(s)
 
 if __name__ == "__main__":
     run(NOISE_MANAG, TEST_PART, REPOSITORY_ID)
